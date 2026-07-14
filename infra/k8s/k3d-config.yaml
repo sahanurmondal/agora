@@ -1,0 +1,21 @@
+# k3d cluster create --config infra/k8s/k3d-config.yaml
+# 1 server + 2 agents → node-drain/PDB demos possible. Traefik + metrics-server
+# ship with k3s (Ingress + HPA are load-bearing). Registry on host:5001.
+apiVersion: k3d.io/v1alpha5
+kind: Simple
+metadata:
+  name: agora
+servers: 1
+agents: 2
+registries:
+  create:
+    name: agora-registry
+    hostPort: "5001"
+ports:
+  - port: 9080:80                # Traefik ingress → http://localhost:9080
+    nodeFilters:
+      - loadbalancer
+options:
+  k3d:
+    wait: true
+    timeout: "300s"

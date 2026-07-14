@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: link-service
+  labels:
+    app: link-service
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: link-service
+  template:
+    metadata:
+      labels:
+        app: link-service
+    spec:
+      containers:
+        - name: link-service
+          image: agora-registry:5001/link-service:latest
+          ports:
+            - containerPort: 8081
+          env:
+            # Stateful infra stays in Compose on the host (ADR: low interview ROI
+            # running operators locally); pods reach it via host.k3d.internal.
+            - name: LINK_DB_URL
+              value: postgres://agora:agora_local@host.k3d.internal:5433/linkdb?sslmode=disable
+            - name: LINK_REDIS_ADDR
+              value: host.k3d.internal:6380
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: http://host.k3d.internal:4318
+            - name: LINK_MACHINE_ID
+              # Distinct machine-id per replica would need a StatefulSet ordinal;
+              # for a Deployment demo we accept one id (single-writer per pod not
+              # guaranteed — noted trade-off, Snowflake seq bits absorb it).
+              value: "9"
+          resources:
+            requests:
+              cpu: 25m
+              memory: 32Mi
+            limits:
+              memory: 64Mi
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8081
+            initialDelaySeconds: 2
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 8081
+            initialDelaySeconds: 1
+            periodSeconds: 5

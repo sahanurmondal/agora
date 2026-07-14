@@ -1,0 +1,50 @@
+# The StatefulSet teaching example (apps use the host Redis; this one exists to
+# demo stable identity + PVC reattach: delete the pod, same name and data return).
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: redis-demo
+spec:
+  serviceName: redis-demo
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis-demo
+  template:
+    metadata:
+      labels:
+        app: redis-demo
+    spec:
+      containers:
+        - name: redis
+          image: redis:7-alpine
+          args: ["--appendonly", "yes"]
+          ports:
+            - containerPort: 6379
+          resources:
+            requests:
+              memory: 32Mi
+            limits:
+              memory: 64Mi
+          volumeMounts:
+            - name: data
+              mountPath: /data
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 100Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-demo
+spec:
+  clusterIP: None   # headless: stable per-pod DNS (redis-demo-0.redis-demo)
+  selector:
+    app: redis-demo
+  ports:
+    - port: 6379

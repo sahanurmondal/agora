@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: catalog-service
+  labels:
+    app: catalog-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: catalog-service
+  template:
+    metadata:
+      labels:
+        app: catalog-service
+    spec:
+      containers:
+        - name: catalog-service
+          image: agora-registry:5001/catalog-service:latest
+          ports:
+            - containerPort: 8083
+          env:
+            - name: CATALOG_DB_URL
+              value: jdbc:postgresql://host.k3d.internal:5433/catalogdb
+            - name: REDIS_HOST
+              value: host.k3d.internal
+            - name: REDIS_PORT
+              value: "6380"
+            - name: MINIO_ENDPOINT
+              value: http://host.k3d.internal:9000
+            - name: OTEL_EXPORTER_OTLP_ENDPOINT
+              value: http://host.k3d.internal:4318
+            - name: JAVA_TOOL_OPTIONS
+              # Heap aligned to the limit: 512Mi limit / 256m heap. Misalign these
+              # (e.g. limit 128Mi) and you get the OOMKill demo from the plan.
+              value: -Xmx256m
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              memory: 512Mi
+          startupProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8083
+            failureThreshold: 30
+            periodSeconds: 2
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: 8083
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: 8083
+            periodSeconds: 5
