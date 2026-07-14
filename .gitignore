@@ -1,0 +1,26 @@
+# env & secrets — keys only in gitignored .env (repo convention)
+.env
+
+# Java
+target/
+*.class
+
+# Go
+services/*/bin/
+*.test
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# OS
+.DS_Store
+
+# load-test artifacts (keep NUMBERS.md, drop raw runs)
+load/results/*.json
