@@ -1,0 +1,38 @@
+# identity-service — env-overridable with local-dev defaults (see .env.example)
+spring:
+  application:
+    name: identity-service
+  datasource:
+    # Host port 5433: local Homebrew Postgres owns 5432; agora-postgres container maps 5433
+    url: ${IDENTITY_DB_URL:jdbc:postgresql://localhost:5433/identitydb}
+    username: ${IDENTITY_DB_USER:agora}
+    password: ${IDENTITY_DB_PASSWORD:agora_local}
+  jpa:
+    # Schema management: ddl-auto=update, deliberate for the lab phase (single tiny
+    # table). Revisit → Flyway when the schema stops being trivial. Documented in
+    # docs/identity-service/design.md §4.
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+
+server:
+  port: ${IDENTITY_PORT:8082}
+
+jwt:
+  # HS256 signing secret, shared with edge-gateway for local validation (ADR-001).
+  # Must be >= 32 bytes. Default = committed dev value from .env.example.
+  secret: ${JWT_SECRET:agora-local-dev-secret-change-me-0123456789abcdef}
+  expiration-seconds: 3600
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  tracing:
+    sampling:
+      probability: 1.0   # sample everything locally; dial down beyond the laptop
+  otlp:
+    tracing:
+      # grafana/otel-lgtm OTLP/HTTP ingest
+      endpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT:http://localhost:4318}/v1/traces

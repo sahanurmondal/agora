@@ -40,6 +40,10 @@ smoke:
 	@docker compose ps --format '{{.Name}}: {{.Status}}'
 	@echo "--- link-service ---"
 	@curl -sf http://localhost:8081/healthz && echo " OK" || echo " DOWN"
+	@echo "--- identity-service ---"
+	@curl -sf http://localhost:8082/actuator/health && echo " OK" || echo " DOWN"
+	@echo "--- edge-gateway ---"
+	@curl -sf http://localhost:8080/actuator/health && echo " OK" || echo " DOWN"
 
 load:
 	k6 run load/scenarios/$(SCRIPT).js

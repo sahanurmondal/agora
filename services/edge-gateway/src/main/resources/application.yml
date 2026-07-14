@@ -1,0 +1,53 @@
+server:
+  port: ${EDGE_PORT:8080}
+
+spring:
+  application:
+    name: edge-gateway
+  cloud:
+    gateway:
+      # SCG's JSON-to-gRPC filter needs non-shaded grpc-netty; we don't use it —
+      # our gRPC egress goes through RateLimiterClient on grpc-netty-shaded.
+      filter:
+        json-to-grpc:
+          enabled: false
+      routes:
+        - id: auth
+          uri: ${IDENTITY_URI:http://localhost:8082}
+          predicates:
+            - Path=/api/v1/auth/**
+        - id: links-api
+          uri: ${LINK_URI:http://localhost:8081}
+          predicates:
+            - Path=/api/v1/links/**
+        # /r/{code} at the gateway → /{code} at link-service, so gateway-level
+        # paths never collide with future top-level routes.
+        - id: redirect
+          uri: ${LINK_URI:http://localhost:8081}
+          predicates:
+            - Path=/r/{code}
+          filters:
+            - RewritePath=/r/(?<code>.*), /$\{code}
+
+gateway:
+  auth:
+    secret: ${JWT_SECRET:agora-local-dev-secret-change-me-0123456789abcdef}
+    protected-route-ids: links-api
+    public-methods: GET,HEAD,OPTIONS
+  ratelimit:
+    enabled: ${RL_ENABLED:true}
+    addr: ${RATELIMIT_ADDR:localhost:9095}
+    deadline-ms: 50
+    warn-every: 100
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  tracing:
+    sampling:
+      probability: 1.0
+  otlp:
+    tracing:
+      endpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT:http://localhost:4318}/v1/traces

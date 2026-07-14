@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+package agora.ratelimit.v1;
+
+option go_package = "github.com/sahanurmondal/agora/services/rate-limiter/gen/ratelimitpb";
+option java_package = "com.agora.ratelimit.v1";
+option java_multiple_files = true;
+
+// Called by edge-gateway on every routed request. Must be cheap: the gateway
+// applies a hard deadline (50ms) and FAILS OPEN if this service is down —
+// availability over strict limiting (documented trade-off, ADR in edge-gateway).
+service RateLimiter {
+  rpc Check(CheckRequest) returns (CheckResponse);
+}
+
+message CheckRequest {
+  // Limit key: client IP, or user id when authenticated.
+  string key = 1;
+  // Rule name, usually the gateway route id ("default", "links-create", ...).
+  string rule = 2;
+}
+
+message CheckResponse {
+  bool allowed = 1;
+  // Tokens remaining in the current window/bucket (best-effort, for headers).
+  int64 remaining = 2;
+  // When denied: suggested client back-off, surfaced as Retry-After.
+  int64 retry_after_ms = 3;
+  // Algorithm that made the decision ("token_bucket" | "sliding_window").
+  string algorithm = 4;
+}
