@@ -1,0 +1,23 @@
+type Query {
+    "One round-trip for a product page: the BFF fans out to catalog, inventory and orders behind the scenes."
+    productPage(productId: ID!): ProductPage
+}
+
+type ProductPage {
+    product: Product
+    stock: Int
+    orderStats: [StateCount!]!
+}
+
+type Product {
+    id: ID!
+    name: String!
+    description: String
+    priceCents: Int!
+    sellerId: String
+}
+
+type StateCount {
+    state: String!
+    n: Int!
+}

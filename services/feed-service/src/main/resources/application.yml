@@ -1,0 +1,26 @@
+server:
+  port: ${FEED_PORT:8092}
+
+spring:
+  application:
+    name: feed-service
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6380}
+
+feed:
+  celeb-threshold: ${FEED_CELEB_THRESHOLD:3}   # tiny locally so the demo flips modes
+  mode: ${FANOUT_MODE:hybrid}                  # write | read | hybrid
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  tracing:
+    sampling:
+      probability: 1.0
+  otlp:
+    tracing:
+      endpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT:http://localhost:4318}/v1/traces

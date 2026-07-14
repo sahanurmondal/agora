@@ -1,0 +1,11 @@
+[project]
+name = "analytics-stream"
+version = "0.1.0"
+description = "Order-event stream aggregation: tumbling windows + watermarks, HLL uniques, revenue leaderboard"
+requires-python = ">=3.12"
+dependencies = [
+    "confluent-kafka>=2.6",
+    "fastapi>=0.115",
+    "uvicorn>=0.32",
+    "redis>=5.2",
+]

@@ -25,6 +25,10 @@
     <module>services/inventory-service</module>
     <module>services/order-service</module>
     <module>services/payment-ledger-service</module>
+    <module>services/notification-service</module>
+    <module>services/chat-service</module>
+    <module>services/feed-service</module>
+    <module>services/web-bff</module>
   </modules>
 
   <properties>

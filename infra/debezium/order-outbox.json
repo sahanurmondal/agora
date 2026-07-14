@@ -1,17 +1,17 @@
 {
-  "name": "catalog-outbox",
+  "name": "order-outbox",
   "config": {
     "connector.class": "io.debezium.connector.postgresql.PostgresConnector",
     "database.hostname": "postgres",
     "database.port": "5432",
     "database.user": "agora",
     "database.password": "agora_local",
-    "database.dbname": "catalogdb",
-    "topic.prefix": "catalog",
+    "database.dbname": "orderdb",
+    "topic.prefix": "orders",
     "plugin.name": "pgoutput",
     "table.include.list": "public.outbox",
     "snapshot.mode": "initial",
     "tombstones.on.delete": "false",
-    "slot.name": "catalog_outbox"
+    "slot.name": "order_outbox"
   }
 }

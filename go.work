@@ -2,5 +2,6 @@ go 1.25.0
 
 use (
 	./services/link-service
+	./services/location-service
 	./services/rate-limiter
 )

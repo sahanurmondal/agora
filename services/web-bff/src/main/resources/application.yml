@@ -1,0 +1,26 @@
+server:
+  port: ${BFF_PORT:8095}
+
+spring:
+  application:
+    name: web-bff
+  graphql:
+    graphiql:
+      enabled: true   # http://localhost:8095/graphiql
+
+bff:
+  catalog-uri: ${CATALOG_URI:http://localhost:8083}
+  inventory-uri: ${INVENTORY_URI:http://localhost:8087}
+  order-uri: ${ORDER_URI:http://localhost:8088}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  tracing:
+    sampling:
+      probability: 1.0
+  otlp:
+    tracing:
+      endpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT:http://localhost:4318}/v1/traces
