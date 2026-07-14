@@ -20,6 +20,8 @@
     <module>platform/platform-testing</module>
     <module>services/identity-service</module>
     <module>services/edge-gateway</module>
+    <module>services/catalog-service</module>
+    <module>services/search-service</module>
   </modules>
 
   <properties>
@@ -76,6 +78,17 @@
   </dependencyManagement>
 
   <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.13.0</version>
+        <configuration>
+          <!-- Spring resolves @RequestParam/@PathVariable names via reflection -->
+          <parameters>true</parameters>
+        </configuration>
+      </plugin>
+    </plugins>
     <pluginManagement>
       <plugins>
         <plugin>

@@ -1,0 +1,35 @@
+server:
+  port: ${CATALOG_PORT:8083}
+
+spring:
+  application:
+    name: catalog-service
+  datasource:
+    url: ${CATALOG_DB_URL:jdbc:postgresql://localhost:5433/catalogdb}
+    username: ${POSTGRES_USER:agora}
+    password: ${POSTGRES_PASSWORD:agora_local}
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6380}
+
+catalog:
+  machine-id: ${CATALOG_MACHINE_ID:2}
+  minio:
+    endpoint: ${MINIO_ENDPOINT:http://localhost:9000}
+    access-key: ${MINIO_ROOT_USER:agora}
+    secret-key: ${MINIO_ROOT_PASSWORD:agora_local}
+    bucket: ${MEDIA_BUCKET:media}
+  cdn-base: ${CDN_BASE:http://localhost:8099}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  tracing:
+    sampling:
+      probability: 1.0
+  otlp:
+    tracing:
+      endpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT:http://localhost:4318}/v1/traces
