@@ -28,6 +28,10 @@ spring:
           uri: ${SEARCH_URI:http://localhost:8084}
           predicates:
             - Path=/api/v1/search/**
+        - id: orders-api
+          uri: ${ORDER_URI:http://localhost:8088}
+          predicates:
+            - Path=/api/v1/orders/**
         # /r/{code} at the gateway → /{code} at link-service, so gateway-level
         # paths never collide with future top-level routes.
         - id: redirect
@@ -40,7 +44,7 @@ spring:
 gateway:
   auth:
     secret: ${JWT_SECRET:agora-local-dev-secret-change-me-0123456789abcdef}
-    protected-route-ids: links-api,catalog-api
+    protected-route-ids: links-api,catalog-api,orders-api
     public-methods: GET,HEAD,OPTIONS
   ratelimit:
     enabled: ${RL_ENABLED:true}

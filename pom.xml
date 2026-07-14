@@ -22,6 +22,9 @@
     <module>services/edge-gateway</module>
     <module>services/catalog-service</module>
     <module>services/search-service</module>
+    <module>services/inventory-service</module>
+    <module>services/order-service</module>
+    <module>services/payment-ledger-service</module>
   </modules>
 
   <properties>

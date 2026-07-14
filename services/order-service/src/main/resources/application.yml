@@ -1,0 +1,28 @@
+server:
+  port: ${ORDER_PORT:8088}
+
+spring:
+  application:
+    name: order-service
+  datasource:
+    url: ${ORDER_DB_URL:jdbc:postgresql://localhost:5433/orderdb}
+    username: ${POSTGRES_USER:agora}
+    password: ${POSTGRES_PASSWORD:agora_local}
+
+order:
+  machine-id: ${ORDER_MACHINE_ID:3}
+  catalog-uri: ${CATALOG_URI:http://localhost:8083}
+  inventory-uri: ${INVENTORY_URI:http://localhost:8087}
+  payment-uri: ${PAYMENT_URI:http://localhost:8089}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  tracing:
+    sampling:
+      probability: 1.0
+  otlp:
+    tracing:
+      endpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT:http://localhost:4318}/v1/traces

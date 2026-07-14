@@ -1,0 +1,25 @@
+server:
+  port: ${PAYMENT_PORT:8089}
+
+spring:
+  application:
+    name: payment-ledger-service
+  datasource:
+    url: ${PAYMENT_DB_URL:jdbc:postgresql://localhost:5433/paymentdb}
+    username: ${POSTGRES_USER:agora}
+    password: ${POSTGRES_PASSWORD:agora_local}
+
+payment:
+  delay-ms: ${PAYMENT_DELAY_MS:0}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  tracing:
+    sampling:
+      probability: 1.0
+  otlp:
+    tracing:
+      endpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT:http://localhost:4318}/v1/traces
