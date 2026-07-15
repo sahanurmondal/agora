@@ -28,7 +28,14 @@ that can make progress.
 per-element delivery bitmap (no loss, no duplicates), block-when-full and
 interruptibility checks, 60s timeout.
 
-### 02 — Thread pool from scratch (next)
+### 02 — Thread pool from scratch ✅
+
+**The trap:** the submit/shutdown race — a check-then-enqueue outside one monitor lets a task
+land *behind* the poison pills: accepted but never executed. Fix: flag check AND enqueue under
+the same lock (safe to block on a full queue while holding it — workers drain without that lock).
+Second trap: a task's uncaught exception killing the worker; workers catch Throwable, only the
+pill exits. **Proof:** 8 threads × 25k submissions with mid-stream shutdown →
+`executed == accepted`, `accepted + rejected == attempted`; pool survives 10 throwing tasks.
 ### 03 — Thread-safe LRU cache
 ### 04 — Rate limiter (token bucket + sliding window)
 ### 05 — Connection pool
