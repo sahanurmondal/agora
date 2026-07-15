@@ -1,0 +1,58 @@
+# Canary for link-service via Traefik weighted round-robin.
+# Apply, then repoint the Ingress backend to the TraefikService (see README).
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: link-service-canary
+  namespace: agora
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: link-service-canary
+  template:
+    metadata:
+      labels:
+        app: link-service-canary
+    spec:
+      containers:
+        - name: link-service
+          image: agora-registry:5001/link-service:canary   # the candidate build
+          ports:
+            - containerPort: 8081
+          env:
+            - name: LINK_DB_URL
+              value: postgres://agora:agora_local@host.k3d.internal:5433/linkdb?sslmode=disable
+            - name: LINK_REDIS_ADDR
+              value: host.k3d.internal:6380
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 8081
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: link-service-canary
+  namespace: agora
+spec:
+  selector:
+    app: link-service-canary
+  ports:
+    - port: 80
+      targetPort: 8081
+---
+apiVersion: traefik.io/v1alpha1
+kind: TraefikService
+metadata:
+  name: link-service-split
+  namespace: agora
+spec:
+  weighted:
+    services:
+      - name: link-service
+        port: 80
+        weight: 90
+      - name: link-service-canary
+        port: 80
+        weight: 10

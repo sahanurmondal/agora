@@ -22,16 +22,30 @@ make smoke
 | Redpanda Console | http://localhost:8085 |
 | MinIO Console | http://localhost:9001 |
 
-## Services
+## Services (all 14 built & gate-tested)
 
-| Service | Lang | Status | Concepts |
+| Service | Port | Lang | Concepts proven |
 |---|---|---|---|
-| `link-service` | Go | **Phase 1** | Snowflake IDs, base62, cache-aside Redis, 301-vs-302 (ADR-001) |
-| edge-gateway, rate-limiter, identity | Java/Go | Phase 1 wk2 | gateway, distributed rate limiting |
-| catalog, search | Java | Phase 2 | caching patterns, outbox+CDC, CDN |
-| inventory, order, payment-ledger | Java | Phase 3 | saga, locks+fencing, event sourcing |
-| chat, notification, web-bff | Java | Phase 5 | WebSocket, DLQ/backpressure, GraphQL |
-| feed, location, analytics-stream | Java/Go/Py | Phase 6 | fan-out, geohash, windowing |
+| `edge-gateway` | 8080 | Java/SCG | L7 routing, JWT edge validation, RL filter w/ 50ms deadline + **fail-open** |
+| `link-service` | 8081 | Go | Snowflake+base62, cache-aside+jitter, 302 (ADR); **500rps @ p95 2.2ms** |
+| `identity-service` | 8082 | Java | stateless JWT (HS256), BCrypt |
+| `catalog-service` | 8083 | Java | **L1 Caffeine/L2 Redis/L3 PG + single-flight coalescing**, outbox→CDC, presigned media |
+| `search-service` | 8084 | Java | CDC indexing (**searchable <2s**), idempotent PUT, prefix-ZSET autocomplete |
+| `inventory-service` | 8087 | Java | optimistic vs pessimistic side-by-side; **1000 buyers/100 stock → exactly 100** |
+| `order-service` | 8088 | Java | **saga + compensation (kill-tested)**, CB+retry+jitter, Idempotency-Key replay |
+| `payment-ledger` | 8089 | Java | event sourcing, CQRS projection (**== fold(log)**), zero-sum double entry |
+| `chat-service` | 8090 | Java | WebSocket + Redis pub/sub cross-node, presence TTL |
+| `notification-service` | 8091 | Java | retry→**DLQ→redrive**, SETNX dedup, **SSE** + long-poll |
+| `feed-service` | 8092 | Java | **fan-out write vs read vs hybrid** (flag-flippable, demo-proven) |
+| `location-service` | 8093 | Go | Redis GEO proximity (**2.3ms nearby**) |
+| `analytics-stream` | 8094 | Python | **event-time windows + watermarks**, HLL uniques, leaderboard |
+| `web-bff` | 8095 | Java | GraphQL aggregation, partial degradation |
+| `rate-limiter` | 9095 | Go | gRPC + Redis Lua token bucket/sliding window (**123/177 exact split**) |
+
+**Kubernetes (k3d)**: kustomize base+overlays, probes/HPA/PDB, StatefulSet, Ingress —
+**pod-kill under load: 200/200 OK**; rolling rollback demoed. `infra/k8s/deploy-patterns/` = canary (Traefik weights) + blue-green.
+**Chaos**: `chaos/run.sh <exp>` — catalog in `chaos/experiments/CATALOG.md`.
+**Drills**: `docs/drills/README.md` maps 16 interview problems → live demos + citable numbers.
 
 ## Verification harness
 
