@@ -51,6 +51,11 @@ public class NotificationFlow {
             return;
         }
         String eventId = after.path("id").asText();
+        // Dedup claim, RELEASED ON FAILURE. The subtle bug this fixes (found
+        // live): claiming before processing and not releasing turns error-
+        // handler RETRIES into "duplicates" — they no-op, the poison message
+        // "succeeds" and never reaches the DLQ. An idempotency marker must
+        // only stick once processing actually succeeded.
         Boolean first = redis.opsForValue().setIfAbsent("notif:dedup:" + eventId, "1",
                 java.time.Duration.ofHours(1));
         if (!Boolean.TRUE.equals(first)) {
@@ -58,6 +63,15 @@ public class NotificationFlow {
             return;
         }
 
+        try {
+            process(after, eventId);
+        } catch (Exception e) {
+            redis.delete("notif:dedup:" + eventId); // release claim → retry re-executes
+            throw e;
+        }
+    }
+
+    private void process(JsonNode after, String eventId) throws Exception {
         JsonNode payload = json.readTree(after.path("payload").asText());
         String buyerId = payload.path("buyerId").asText();
         if ("poison".equals(buyerId)) {

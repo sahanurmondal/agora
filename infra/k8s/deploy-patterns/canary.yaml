@@ -17,10 +17,12 @@ spec:
     spec:
       containers:
         - name: link-service
-          image: agora-registry:5001/link-service:canary   # the candidate build
+          image: agora-registry:5001/link-service:latest   # same image; the TRACK differs by env
           ports:
             - containerPort: 8081
           env:
+            - name: VERSION
+              value: canary
             - name: LINK_DB_URL
               value: postgres://agora:agora_local@host.k3d.internal:5433/linkdb?sslmode=disable
             - name: LINK_REDIS_ADDR

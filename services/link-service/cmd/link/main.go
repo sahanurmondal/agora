@@ -63,9 +63,17 @@ func main() {
 	mux := http.NewServeMux()
 	api.New(st, snow, "http://localhost:"+port).Register(mux)
 
+	// X-Version lets canary/blue-green demos count which track served a
+	// request; the value comes from env so one image serves every track.
+	version := envOr("VERSION", "stable")
+	versioned := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("X-Version", version)
+		mux.ServeHTTP(w, r)
+	})
+
 	srv := &http.Server{
 		Addr:              ":" + port,
-		Handler:           otelhttp.NewHandler(mux, "link-service"),
+		Handler:           otelhttp.NewHandler(versioned, "link-service"),
 		ReadHeaderTimeout: 5 * time.Second,
 	}
 

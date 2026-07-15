@@ -1,0 +1,29 @@
+# Weighted canary entry: /canary/* → 90% stable / 10% canary.
+# IngressRoute (not plain Ingress) because only Traefik CRDs can target a
+# weighted TraefikService.
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: strip-canary
+  namespace: agora
+spec:
+  stripPrefix:
+    prefixes:
+      - /canary
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: link-canary-split
+  namespace: agora
+spec:
+  entryPoints:
+    - web
+  routes:
+    - match: PathPrefix(`/canary`)
+      kind: Rule
+      middlewares:
+        - name: strip-canary
+      services:
+        - name: link-service-split
+          kind: TraefikService

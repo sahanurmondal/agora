@@ -109,6 +109,21 @@ services:
       timeout: 5s
       retries: 6
 
+  toxiproxy:
+    image: ghcr.io/shopify/toxiproxy:2.11.0
+    container_name: agora-toxiproxy
+    profiles: ["chaos"]
+    ports:
+      - "8474:8474"     # control API
+      - "21089:21089"   # payment proxy (order-service points here during chaos runs)
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    healthcheck:
+      test: ["CMD", "/toxiproxy-cli", "list"]
+      interval: 5s
+      timeout: 3s
+      retries: 6
+
   redis:
     image: redis:7-alpine
     container_name: agora-redis
