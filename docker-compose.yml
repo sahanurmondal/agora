@@ -209,6 +209,7 @@ services:
       - "4318:4318"                    # OTLP HTTP
     volumes:
       - ./infra/observability/dashboards:/otel-lgtm/grafana-dashboards:ro
+      - ./infra/observability/agora-provider.yaml:/otel-lgtm/grafana/conf/provisioning/dashboards/agora.yaml:ro
     healthcheck:
       # curl not wget: the image ships curl; and match on HTTP success only
       test: ["CMD-SHELL", "curl -sf http://localhost:3000/api/health >/dev/null"]

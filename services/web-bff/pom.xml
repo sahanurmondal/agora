@@ -34,6 +34,18 @@
       <groupId>io.opentelemetry</groupId>
       <artifactId>opentelemetry-exporter-otlp</artifactId>
     </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <!-- Consumer-driven contracts: pact files land in contracts/pacts (broker-less; CONVENTIONS.md) -->
+    <dependency>
+      <groupId>au.com.dius.pact.consumer</groupId>
+      <artifactId>junit5</artifactId>
+      <version>4.6.15</version>
+      <scope>test</scope>
+    </dependency>
   </dependencies>
   <build>
     <plugins>

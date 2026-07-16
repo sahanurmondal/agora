@@ -1,0 +1,1 @@
+| 2026-07-16 | lld-lab ex06 JMH: 95/5 mix, 8 threads | ops/µs | StampedLock-optimistic 20.4 > synchronized 16.0 > ReentrantRWLock 10.2 | — | RW-lock loses on tiny critical sections; optimistic read = version check only |

@@ -1,8 +1,18 @@
 # LLD & Concurrency Lab
 
-Plain Java 21 + JUnit 5 (+ JMH from ex. 3). No Spring — interviews test raw
-`java.util.concurrent` fluency. One exercise/week, ~2-3h, concurrency first.
-Benchmarks land in `NUMBERS.md`; re-drills logged in `../docs/drills/DRILL-LOG.md`.
+Plain Java 21 + JUnit 5 + JMH. No Spring — interviews test raw
+`java.util.concurrent` fluency. Benchmarks land in `NUMBERS.md`; re-drills in
+`../docs/drills/DRILL-LOG.md`. **19/19 tests green.**
+
+## Machine-coding set ✅ (`lab.machinecoding`, one file each)
+
+| Problem | Patterns | The concurrency/design point proven |
+|---|---|---|
+| ParkingLot | Strategy ×2 (selection, pricing) | CAS spot claim: 16 racing gates × 10 spots → exactly 10 parked |
+| SeatBooking | State (AVAILABLE→HELD→BOOKED, TTL) | 8-user race → 1 hold; stale hold rejected by version at confirm; lazy expiry (no reaper). Same invariant inventory-service solves at cluster scale |
+| Splitwise | Strategy (splits), min-cash-flow | balances always sum to 0; ≤ n-1 settling transfers |
+| MiniLogger | Observer, Decorator, Builder | AsyncAppender = ex01 queue + ex02 poison-pill flush: 500/500 lines after close() |
+| VendingMachine | State (canonical) | illegal events handled in-state; dispense→Idle with change |
 
 ## Exercise log
 
@@ -54,9 +64,14 @@ conn pooled twice (borrowed-set rejects). Leak detector records borrower stack +
 (HikariCP's leakDetectionThreshold, hand-rolled). 16 threads × 200 borrows: in-use never exceeded
 capacity 4, factory created ≤ 4.
 
-### 06 — RW locking comparison 🔜
-Folded partially into 03's striped-vs-global probe; full synchronized/RWLock/StampedLock JMH
-matrix is the remaining refinement.
+### 06 — RW locking comparison ✅ (real JMH)
+**Measured (JMH 1.37, 8 threads, 95/5 read/write, ops/µs):** StampedLock optimistic **20.4** >
+synchronized **16.0** > ReentrantReadWriteLock **10.2**. THE insight: the "obvious" RW-lock
+LOSES on tiny critical sections — its read-count bookkeeping costs more than the exclusivity it
+avoids; StampedLock wins because an optimistic read is just a version check. Traps encoded in
+`MetadataStore`: read→write upgrade self-deadlock, writer starvation, StampedLock non-reentrancy
++ mandatory validate()-and-fallback. (JDK 23 gotcha: annotation processing off by default —
+`<proc>full</proc>` or JMH's BenchmarkList never generates.)
 
 ### 07 — Deadlock demo + fix ✅
 Opposing naive transfers interlock (all four Coffman conditions); detected live via
